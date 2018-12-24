@@ -1,4 +1,7 @@
 const config = require('./server/config');
+if(config.environment === 'prod'){
+  require('./server/build');
+}
 const express = require('express');
 const app = express();
 var http = require('http').Server(app);

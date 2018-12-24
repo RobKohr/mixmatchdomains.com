@@ -3,9 +3,9 @@ import openSocket from 'socket.io-client';
 
 const location = window.location;
 var full = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
-let socketUrl = location.protocol+'//'+location.hostname;
-if(location.hostname==='localhost'){
-  socketUrl+=':8000';
+let socketUrl = location.protocol + '//' + location.hostname;
+if (['localhost', '127.0.0.1'].includes(location.hostname)) {
+  socketUrl += ':8000';
 }
 
 const socket = openSocket(socketUrl);
@@ -48,7 +48,11 @@ const sendAction = function(action, params){
 }
 
 socket.on('update', function(data){
-  socket.onDataUpdate(data);
+  if(typeof(socket.onDataUpdate)==='undefined'){
+    console.log('ERROR: no function to handle update', data);
+  }else{
+    socket.onDataUpdate(data);
+  }
 });
 
 
@@ -59,12 +63,17 @@ socket.on('errorMessage', function(msg){
 socket.emit('setWebsocketSessionId', websocketSessionId);
 socket.on('reconnected', function(){
   socket.emit('setWebsocketSessionId', websocketSessionId);  
+  socket.onConnect(socket)
 })
 
 function registerDataUpdateFunction(fun){
   socket.onDataUpdate = fun;
+  console.log('data update function set')
 }
 
+function registerOnConnectCallback(fun){
+  socket.onConnect = fun;
+}
 socket.on()
 
 /*
@@ -73,4 +82,4 @@ module.exports = [
   registerDataUpdateFunction
 ];
 */
-export {sendAction, registerDataUpdateFunction};
+export {sendAction, registerDataUpdateFunction, registerOnConnectCallback};

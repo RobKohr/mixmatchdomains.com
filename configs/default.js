@@ -6,4 +6,5 @@ module.exports = {
   project,
   mongodbUrl: 'mongodb://localhost:27017',
   mongodbDbName: project,
+  environment: 'dev',
 }

@@ -1,91 +1,117 @@
 import React, {useState} from 'react';
-import {  sendAction, registerDataUpdateFunction } from "./socket/socket";
+import { sendAction, registerDataUpdateFunction, registerOnConnectCallback } from "./socket/socket";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { InitializeForm, TextField, CheckboxField, SelectField } from "./helpers/form";
+import { tlds } from "./constants";
+import './App.scss';
 
-
-const Index = () => <h2>Home</h2>;
-const About = () => <h2>About</h2>;
-const Users = () => <h2>Users</h2>;
-
-const Login = ({ register }) => {
-  const initialFormState = { username: '', password: '', retypePassword: '' }
-  const [ fields, setFields ] = useState(initialFormState)
-
-  //https://github.com/final-form/react-final-form-hooks#simple-example
-  function onSubmit(event){
-    event.preventDefault();
-    const {username, password, retypePassword} = fields;
-    sendAction('register', {username, password, retypePassword});
-  }
-	const handleInputChange = event => {
-    console.log('letter', event.target.value, event.target.name, event.target);
-    const { name, value } = event.target
-    console.log(name, value);
-    setFields({ ...fields, [name]: value })
-	}
+const Index = ({ data }) => {
+  console.log('data is', data);
   return (
-    <form id="login" onSubmit={onSubmit}>
-      {register && <h2>Register</h2>}
-      {!register && <h2>Login</h2>}
-      <p>
-        <label>Username</label>
-        <input type="text" name="username" value={fields.username} onChange={handleInputChange}></input>
-      </p>
-      <p>
-        <label>Password</label>
-        <input type="password" name="password" value={fields.password} onChange={handleInputChange}></input>
-      </p>
-      {register &&
-        <p>
-          <label>Retype Password</label>
-          <input type="password" name="retypePassword" value={fields.retypePassword} onChange={handleInputChange}></input>
-        </p>
-      }
-      <p>
-        <label></label>
-        <input type="submit"></input>
+    <div id="page-index">
+      <SearchForm></SearchForm>
+      <Results></Results>
+    </div>
+  )
+}
+
+const SearchForm = () => {
+  const fieldGroups = ['term', 'matchType', 'orderLocation', 'isRequired'];
+  const fieldNumbers = [0, 1, 2]
+  const initialFormState = { term: '', matchType: 'Synonym', orderLocation: 'Any Position', isRequired: 'Required' };
+  const fieldGroupDefaultValues = {}
+  fieldGroups.forEach(fieldGroup => {
+    fieldNumbers.forEach(fieldNumber => {
+      initialFormState[`${fieldGroup}${fieldNumber}`] = initialFormState[fieldGroup];
+    });
+  })
+  initialFormState['isRequired3'] = 'Optional';
+  initialFormState['tld'] = '.com';
+  const onSubmitCallback = ({ event, fields }) => {
+    console.log(JSON.stringify(fields, null, 5));
+    sendAction('updateConstraints', fields);
+  };
+
+  const onChangeCallback = ({ event, fields, name, value }) => {
+    //
+    //sendAction('updateConstraints', fields);
+  };
+  const formHandler = InitializeForm({ initialFormState, onSubmitCallback, onChangeCallback });
+
+  return (
+    <form id="terms" onSubmit={formHandler.onSubmit}>
+      <Term number={0} formHandler={formHandler}></Term>
+      <Term number={1} formHandler={formHandler}></Term>
+      <Term number={2} formHandler={formHandler}></Term>
+      <p id="submit-container">
+        <SelectField label="Top Level Domain" name="tld" formHandler={formHandler} options={tlds} />
+        <input id="submit-terms" type="submit" value="Search" onClick={formHandler.onSubmit}></input>
       </p>
     </form>
   )
 }
 
-const Register = () => (
-  <Login register="true"></Login>
-)
+const Results = () => {
+  const { domains } = useWebsocketHookData();
+  return (
+    <div id="results">
+      {
+        domains && domains.map(function (r) {
+          return (
+            <div class="result">
+              <div className="domainWithTLD">
+              <span href="{r.domainWithTLD}"><DomainColorized domainObj={r}/></span> is 
+                <span className={ r.isAvailable ? 'available' : 'unavailable'}>
+                  { r.isAvailable ? ' available' : ' unavailable'}
+                </span>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  );
+}
 
+const DomainColorized = ({ domainObj }) => {
+  return (
+    <span className="colorized-domain">
+      { domainObj.domainParts.map(function partProcess(part){
+        return (<span class="colorized-domain-part">{part}</span>);
+      })
+      }
+      <span className="tld">{domainObj.tld}</span>
+    </span>
+  );
+}
+
+const Term = ({ number, formHandler }) => {
+  const termClass = formHandler.fields[`term${number}`] === '' ? 'empty' : '';
+  return <div className={`term term-${number} ${termClass}`}>
+    <TextField label={`Term ${number+1}`} name={`term${number}`} formHandler={formHandler} />
+    <SelectField name={`matchType${number}`} formHandler={formHandler} options={['Synonym', 'Exact Match']} />
+    {/* 
+       <SelectField name={`orderLocation${number}`} formHandler={formHandler} options={['Beginning', 'Middle', 'End', 'Any Position']} />
+      <SelectField name={`isRequired${number}`} formHandler={formHandler} options={['Optional', 'Required']} />
+    */}
+  </div>;
+}
+
+function useWebsocketHookData() {
+  console.log('initialized')
+  const [data, setData] = useState({domains:[]})
+  registerDataUpdateFunction(function onUpdate(updatedData){
+    console.log('we did it', updatedData)
+    setData(updatedData);
+  })
+  return data;
+}
 
 const AppRouter = () => {
-  registerDataUpdateFunction(function onUpdate(data){
-    console.log('we did it', data)
-    
-  })
   return (
     <Router>
       <div>
-        <nav>
-          <ul>
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-            <li>
-              <Link to="/about/">About</Link>
-            </li>
-            <li>
-              <Link to="/users/">Users</Link>
-            </li>
-            <li>
-              <Link to="/login/">Login</Link>
-            </li>
-            <li>
-              <Link to="/register/">Register</Link>
-            </li>
-          </ul>
-        </nav>
         <Route path="/" exact component={Index} />
-        <Route path="/about/" component={About} />
-        <Route path="/users/" component={Users} />
-        <Route path="/login/" component={Login} />
-        <Route path="/register/" component={Register} />
       </div>
     </Router>
   );
