@@ -4,7 +4,7 @@ var exec = require('child_process').exec;
 const moby = require('moby');
 
 
-function handleFormErrors(socket, errors){
+function handleFormErrors(socket, errors) {
   socket.data.formErrors = errors;
   socket.update('formErrors', errors);
 }
@@ -24,7 +24,7 @@ function updateConstraints(fields, socket) {
     let term = fields[`term${i}`];
     let matchType = fields[`matchType${i}`];
     term = term.trim();
-    if(matchType==='Exact Match'){
+    if (matchType === 'Exact Match') {
       wordLists[i] = [cleanupWord(term)];
       continue;
     }
@@ -38,7 +38,7 @@ function updateConstraints(fields, socket) {
 }
 
 
-function cleanupWord(str){
+function cleanupWord(str) {
   str = str.replace(/[^a-z0-9]+/gi, "").toLowerCase().trim();
   str = str.charAt(0).toUpperCase() + str.substring(1);
   return str;
@@ -48,7 +48,7 @@ const randomFromArray = (arr) => {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-const createDomainNameFromWordLists = function(wordLists){
+const createDomainNameFromWordLists = function (wordLists) {
   let domain = '';
   let domainParts = [];
   if (wordLists) {
@@ -66,16 +66,16 @@ const createDomainNameFromWordLists = function(wordLists){
   return { domainParts, domain };
 }
 
-function updateDomains(socket){
+function updateDomains(socket) {
   socket.data.domains = [];
   socket.sendUpdatedData();
-  for(i = 0; i < 20; i+=1){
-    let {domainParts, domain} = createDomainNameFromWordLists(socket.wordLists);
+  for (i = 0; i < 20; i += 1) {
+    let { domainParts, domain } = createDomainNameFromWordLists(socket.wordLists);
     const tld = socket.tld;
-    let domainWithTLD = domain+tld;
+    let domainWithTLD = domain + tld;
     console.log('what', domain)
-    if(domain){
-      checkHostAvailable(domainWithTLD, function callback(isAvailable){
+    if (domain) {
+      checkHostAvailable(domainWithTLD, function callback(isAvailable) {
         const domainObj = { domainParts, domain, domainWithTLD, isAvailable, tld };
         socket.data.domains.push(domainObj);
         socket.sendUpdatedData();
@@ -83,17 +83,17 @@ function updateDomains(socket){
     }
   }
 }
- 
-function checkHostAvailable(domain, callback){
-  domain = domain.replace(/[^a-z0-9\.]/gi,'');
+
+function checkHostAvailable(domain, callback) {
+  domain = domain.replace(/[^a-z0-9\.]/gi, '');
   exec(`host ${domain}`, function (error, stdout, stderr) {
-    if(!domain){
+    if (!domain) {
       return callback(false);
     }
     console.log('test', stdout, stdout.includes('NXDOMAIN'))
-    if(stdout.includes('NXDOMAIN')){
+    if (stdout.includes('NXDOMAIN')) {
       callback(true);
-    }else{
+    } else {
       callback(false);
     }
   });

@@ -5,8 +5,7 @@ import { InitializeForm, TextField, CheckboxField, SelectField } from "./helpers
 import { tlds } from "./constants";
 import './App.scss';
 
-const Index = ({ data }) => {
-  console.log('data is', data);
+const Index = () => {
   return (
     <div id="page-index">
       <SearchForm></SearchForm>
@@ -53,6 +52,11 @@ const SearchForm = () => {
 
 const Results = () => {
   const { domains } = useWebsocketHookData();
+  if(!domains || domains.length === 0){
+    return (<div id="results">
+      <p>No results. Try adjusting your query and clicking on search.</p>
+    </div>);
+  }
   return (
     <div id="results">
       {

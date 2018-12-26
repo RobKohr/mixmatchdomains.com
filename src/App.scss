@@ -43,8 +43,9 @@ $term-color-2: #F3986F;
     //background:green;
     padding:1em;
     padding-right:5em;
-    border-bottom:1px dashed gray;
     #submit-terms{
+      position:relative;
+    top:-30px;
       float:right;
       background: #3498db;
       background-image: linear-gradient(to bottom, #3498db, #2980b9);
@@ -67,7 +68,10 @@ $term-color-2: #F3986F;
 #results{
   color:white;
   padding:1em;
-  background:black;
+  background:#333333;
+  border:5px dashed white;
+  margin-left:1em;
+  margin-right:1em;
   .unavailable{
     color:red;
     text-decoration: line-through;
