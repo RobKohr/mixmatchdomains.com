@@ -1,8 +1,8 @@
 const db = require('./mongo')();
 const { validator } = require('./validation');
 var exec = require('child_process').exec;
-const moby = require('moby');
-
+const { findSimilarWords, cleanupWord, termToTermWords } = require('./similar-words');
+var _ = require('lodash');
 
 function handleFormErrors(socket, errors) {
   socket.data.formErrors = errors;
@@ -25,23 +25,15 @@ function updateConstraints(fields, socket) {
     let matchType = fields[`matchType${i}`];
     term = term.trim();
     if (matchType === 'Exact Match') {
-      wordLists[i] = [cleanupWord(term)];
-      continue;
+      wordLists[i] = termToTermWords(term);
+    } else {
+      list = findSimilarWords(term);
+      wordLists[i] = list;
     }
-    list = moby.search(term)
-      .map(cleanupWord);
-    wordLists[i] = list;
   }
   socket.tld = fields.tld;
   socket.wordLists = wordLists;
   updateDomains(socket);
-}
-
-
-function cleanupWord(str) {
-  str = str.replace(/[^a-z0-9]+/gi, "").toLowerCase().trim();
-  str = str.charAt(0).toUpperCase() + str.substring(1);
-  return str;
 }
 
 const randomFromArray = (arr) => {
@@ -73,11 +65,11 @@ function updateDomains(socket) {
     let { domainParts, domain } = createDomainNameFromWordLists(socket.wordLists);
     const tld = socket.tld;
     let domainWithTLD = domain + tld;
-    console.log('what', domain)
     if (domain) {
       checkHostAvailable(domainWithTLD, function callback(isAvailable) {
         const domainObj = { domainParts, domain, domainWithTLD, isAvailable, tld };
         socket.data.domains.push(domainObj);
+        socket.data.domains = _.uniqBy(socket.data.domains, (domainObj)=>domainObj.domain);
         socket.sendUpdatedData();
       });
     }
@@ -90,7 +82,6 @@ function checkHostAvailable(domain, callback) {
     if (!domain) {
       return callback(false);
     }
-    console.log('test', stdout, stdout.includes('NXDOMAIN'))
     if (stdout.includes('NXDOMAIN')) {
       callback(true);
     } else {

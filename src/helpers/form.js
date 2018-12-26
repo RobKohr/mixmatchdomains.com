@@ -1,13 +1,13 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 const InitializeForm = ({ initialFormState, onSubmitCallback, onChangeCallback }) => {
   const [fields, setFields] = useState(initialFormState)
   const handleInputChange = event => {
     const { name, value } = event.target
-    const newFields = {...fields, [name]: value};
+    const newFields = { ...fields, [name]: value };
     setFields(newFields);
-    if(onChangeCallback){
-      onChangeCallback({ event, fields:newFields});
+    if (onChangeCallback) {
+      onChangeCallback({ event, fields: newFields });
     }
   }
   function onSubmit(event) {
@@ -18,20 +18,20 @@ const InitializeForm = ({ initialFormState, onSubmitCallback, onChangeCallback }
   return { handleInputChange, fields, setFields, onSubmit };
 }
 
-const TextField = ({ label, name, formHandler }) => {
+const TextField = ({ label, name, formHandler, ...props }) => {
   return (
     <div class="field text-field">
       {
         label && <label for={name}>{label}</label>
       }
-      <input type="text" name={name} value={formHandler.fields[name]} onChange={formHandler.handleInputChange}></input>
+      <input {...props} type="text" name={name} value={formHandler.fields[name]} onChange={formHandler.handleInputChange}></input>
     </div>
   );
 }
 const CheckboxField = ({ label, name, formHandler }) => {
   return (
     <span class="checkbox-field">
-      <input type="checkbox" name={name} value={formHandler.fields[name]} onChange={formHandler.handleInputChange}/>
+      <input type="checkbox" name={name} value={formHandler.fields[name]} onChange={formHandler.handleInputChange} />
       {
         label && <label for={name}>{label}</label>
       }
@@ -39,19 +39,20 @@ const CheckboxField = ({ label, name, formHandler }) => {
   );
 }
 
-const SelectField = ({ label, name, options, formHandler }) => {
+const SelectField = ({ label, name, options, formHandler, ...props }) => {
+  console.log(props);
   return (
     <div class="field select-field">
       {
         label && <label for={name}>{label}</label>
       }
-      <select name={name} value={formHandler.fields[name]} onChange={formHandler.handleInputChange}>
+      <select  {...props} name={name} value={formHandler.fields[name]} onChange={formHandler.handleInputChange}>
         {
-          options.map((option, index)=>{
+          options.map((option, index) => {
             let optionObj = null;
-            if(typeof(option)==='string'){
-              optionObj = { value: option, label:option };
-            }else{
+            if (typeof (option) === 'string') {
+              optionObj = { value: option, label: option };
+            } else {
               optionObj = option;
             }
             return (

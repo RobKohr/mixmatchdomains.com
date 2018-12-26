@@ -72,20 +72,41 @@ $term-color-2: #F3986F;
   border:5px dashed white;
   margin-left:1em;
   margin-right:1em;
-  .unavailable{
-    color:red;
-    text-decoration: line-through;
+  a{
+    color:lightblue;
   }
-  .colorized-domain-part, .tld{
-    font-weight:bold;
-    &:nth-child(1){
-      color:$term-color-0;
-    } 
-    &:nth-child(2){
-      color:$term-color-1;
-    } 
-    &:nth-child(3){
-      color:$term-color-2;
+  .result{
+    position: relative;
+    display:table-row;
+    &:hover{
+      background:#444444;
+    }
+    .result-section{
+      display:table-cell;
+    }
+    .unavailable{
+      color:red;
+      text-decoration: line-through;
+    }
+    .domainWithTLD{
+      padding-bottom:3px;
+      padding-top:3px;
+      .colorized-domain-part, .tld{
+        font-weight:bold;
+        margin-left:2px;
+        &:nth-child(1){
+          color:$term-color-0;
+        } 
+        &:nth-child(2){
+          color:$term-color-1;
+        } 
+        &:nth-child(3){
+          color:$term-color-2;
+        }
+        &:nth-last-child(2){
+          margin-left:0px;
+        }
+      }
     }
   }
 }
