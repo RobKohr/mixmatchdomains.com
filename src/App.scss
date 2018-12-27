@@ -5,6 +5,11 @@ $term-color-1: #00AB6D;
 $term-color-2-empty: #F0944F;
 $term-color-2: #F3986F;
 
+form{
+  label{
+    padding-right:1em;
+  }
+}
 
 #terms {
   .term {
@@ -15,6 +20,14 @@ $term-color-2: #F3986F;
     display:inline-block;
     width:30%;
     min-width:400px;
+    .field{
+      color:white;
+      font-weight:bold;
+      padding:3px;
+      label{
+        padding-right:3em;
+      }
+    }
     &.term-0{
       background-color:$term-color-0;
       &.empty{

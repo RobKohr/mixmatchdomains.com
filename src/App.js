@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { sendAction, registerDataUpdateFunction, registerOnConnectCallback } from "./socket/socket";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { InitializeForm, TextField, CheckboxField, SelectField } from "./helpers/form";
-import { tlds } from "./constants";
+import { tlds, registerAgents, matchTypes} from "./constants";
 import './App.scss';
 
 const Index = () => {
   return (
     <div id="page-index">
       <SearchForm></SearchForm>
-      <Results></Results>
     </div>
   )
 }
@@ -26,6 +25,12 @@ const SearchForm = () => {
   })
   initialFormState['isRequired3'] = 'Optional';
   initialFormState['tld'] = '.com';
+  if(Math.random() < 0.5){
+    initialFormState['agent'] = registerAgents[0].value;
+  }else{
+    initialFormState['agent'] = registerAgents[1].value;
+  }
+  
   const onSubmitCallback = ({ event, fields }) => {
     console.log(JSON.stringify(fields, null, 5));
     sendAction('updateConstraints', fields);
@@ -38,29 +43,33 @@ const SearchForm = () => {
   const formHandler = InitializeForm({ initialFormState, onSubmitCallback, onChangeCallback });
 
   return (
-    <form id="terms" onSubmit={formHandler.onSubmit}>
-      <Term number={0} formHandler={formHandler}></Term>
-      <Term number={1} formHandler={formHandler}></Term>
-      <Term number={2} formHandler={formHandler}></Term>
-      <p id="submit-container">
-        <SelectField label="Top Level Domain" name="tld" formHandler={formHandler} options={tlds} />
-        <SelectField label="Preferred Agent" name="agent" formHandler={formHandler} options={['NameCheap', 'GoDaddy']} />
-        
-        <input tabindex="1" id="submit-terms" type="submit" value="Search" onClick={formHandler.onSubmit}></input>
-      </p>
-    </form>
+    <div id="search">
+      <form id="terms" onSubmit={formHandler.onSubmit}>
+        <Term number={0} formHandler={formHandler}></Term>
+        <Term number={1} formHandler={formHandler}></Term>
+        <Term number={2} formHandler={formHandler}></Term>
+        <p id="submit-container">
+          <SelectField label="Top Level Domain" name="tld" formHandler={formHandler} options={tlds} />
+          <SelectField label="Preferred Agent" name="agent" formHandler={formHandler} options={registerAgents} />
+
+          <input tabindex="1" id="submit-terms" type="submit" value="Search" onClick={formHandler.onSubmit}></input>
+        </p>
+      </form>
+      <Results tld={formHandler.fields.tld} agent={formHandler.fields.agent}></Results>
+    </div>
   )
 }
 
-const Results = () => {
+const Results = ({tld, agent}) => {
   const { domains } = useWebsocketHookData();
+  console.log({tld, agent})
   if (!domains || domains.length === 0) {
     return (<div id="results">
       <p>No results. Try adjusting your query and clicking on search.</p>
-      <p>Instructions: Use one word per term. Terms will be used to build domains names from.  Enter at least two different terms to base search results off of.</p>
-      <p>Additionally, you can use a comma seperated list of words for a term to add more variety.</p>
-      <p>You can either use synonym word matching, or exact word matching.</p>
     </div>);
+  }
+  function domainLink(domain){
+    return agent.replace('$DOMAIN', domain);
   }
   return (
     <div id="results">
@@ -81,13 +90,13 @@ const Results = () => {
                   {
                     r.isAvailable &&
                     (
-                      <span className="register"><a href="namecheap.com">Register this domain at NameCheap.com</a></span>
+                      <span className="register"><a href={domainLink(r.domainWithTLD)}>Go register it!</a></span>
                     )
                   }
                   {
                     !r.isAvailable &&
                     (
-                      <span className="register"><a href="namecheap.com">Try .net, .org, .it, info, and others &rarr;</a></span>
+                      <span className="register"><a href={domainLink(r.domainWithTLD)}>Try .net, .org, .it, info, and others &rarr;</a></span>
                     )
                   }
               </div>
@@ -115,7 +124,7 @@ const Term = ({ number, formHandler }) => {
   const termClass = formHandler.fields[`term${number}`] === '' ? 'empty' : '';
   return <div className={`term term-${number} ${termClass}`}>
     <TextField tabindex="1" label={`Term ${number + 1}`} name={`term${number}`} formHandler={formHandler} />
-    <SelectField tabindex="2" name={`matchType${number}`} formHandler={formHandler} options={['Synonym', 'Exact Match']} />
+    <SelectField label="Match Method" tabindex="2" name={`matchType${number}`} formHandler={formHandler} options={matchTypes} />
     {/* 
        <SelectField name={`orderLocation${number}`} formHandler={formHandler} options={['Beginning', 'Middle', 'End', 'Any Position']} />
       <SelectField name={`isRequired${number}`} formHandler={formHandler} options={['Optional', 'Required']} />

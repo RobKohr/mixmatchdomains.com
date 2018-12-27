@@ -12,7 +12,6 @@ const InitializeForm = ({ initialFormState, onSubmitCallback, onChangeCallback }
   }
   function onSubmit(event) {
     event.preventDefault();
-    console.log('here');
     onSubmitCallback({ event, fields });
   }
   return { handleInputChange, fields, setFields, onSubmit };
@@ -40,7 +39,6 @@ const CheckboxField = ({ label, name, formHandler }) => {
 }
 
 const SelectField = ({ label, name, options, formHandler, ...props }) => {
-  console.log(props);
   return (
     <div class="field select-field">
       {
