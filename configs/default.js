@@ -1,5 +1,5 @@
 // copy this file to local.js to make changes
-const project = 'islandwarfare';
+const project = 'mixmatchdomains';
 
 module.exports = {
   port: 8000,
