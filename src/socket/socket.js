@@ -6,6 +6,8 @@ var full = location.protocol+'//'+location.hostname+(location.port ? ':'+locatio
 let socketUrl = location.protocol + '//' + location.hostname;
 if (['localhost', '127.0.0.1'].includes(location.hostname)) {
   socketUrl += ':8000';
+} else if(location.port !== '80') {
+    socketUrl += ':'+location.port;
 }
 
 const socket = openSocket(socketUrl);
