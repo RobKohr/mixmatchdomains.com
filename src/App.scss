@@ -85,6 +85,8 @@ form{
   border:5px dashed white;
   margin-left:1em;
   margin-right:1em;
+  display:table;
+  width:calc(100% - 3em);
   a{
     color:lightblue;
   }
@@ -92,6 +94,12 @@ form{
     position: relative;
     display:table-row;
     &:hover{
+      background:#555555;
+    }
+    &:nth-child(even){
+	&:hover{
+	    background:#555555;
+	}
       background:#444444;
     }
     .result-section{
