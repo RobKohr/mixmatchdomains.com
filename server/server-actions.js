@@ -1,4 +1,4 @@
-const db = require('./mongo')();
+//const db = require('./mongo')();
 const { validator } = require('./validation');
 var exec = require('child_process').exec;
 const { findSimilarWords, cleanupWord, termToTermWords } = require('./similar-words');
