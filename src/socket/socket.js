@@ -1,4 +1,4 @@
-import openSocket from /Users/rkohr/projects/mixmatchdomains.com/public/socket.io.js'socket.io-client';
+import openSocket from 'socket.io-client';
 
 
 const location = window.location;
