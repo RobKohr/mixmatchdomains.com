@@ -25,11 +25,7 @@ const SearchForm = () => {
   })
   initialFormState['isRequired3'] = 'Optional';
   initialFormState['tld'] = '.com';
-  if(Math.random() < 0.5){
-    initialFormState['agent'] = registerAgents[0].value;
-  }else{
-    initialFormState['agent'] = registerAgents[1].value;
-  }
+  initialFormState['agent'] = registerAgents[0].value;
   
   const onSubmitCallback = ({ event, fields }) => {
     console.log(JSON.stringify(fields, null, 5));
