@@ -25,7 +25,7 @@ const registerAgents = [
   {
     label: 'NameCheap',
     value:
-      'https://www.namecheap.com/domains/registration/results.aspx?domain=$DOMAIN',
+    'http://www.dpbolvw.net/click-5505329-13346111?url=https%3A%2F%2Fwww.namecheap.com%2Fdomains%2Fregistration%2Fresults.aspx%3Fdomain%3D$DOMAIN',
   },
   {
     label: 'GoDaddy',
