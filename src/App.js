@@ -1,19 +1,35 @@
 import React, { useState } from 'react';
 import { sendAction, registerDataUpdateFunction, registerOnConnectCallback } from "./socket/socket";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import { InitializeForm, TextField, CheckboxField, SelectField } from "./helpers/form";
+import { InitializeForm, TextField, TextInput, SelectField, SelectInput} from "./helpers/form";
 import { tlds, registerAgents, matchTypes} from "./constants";
 import './App.scss';
 
 const Index = () => {
+
+  const quickMixerChangeHandler = ({ event, fields }) => {
+    sendAction('quickmixer', fields);
+  };
+  const quickMixerFormHandler = InitializeForm({
+    initialFormState: { domain: '', tld: '.com' },
+    onSubmitCallback: quickMixerChangeHandler,
+    onChangeCallback: quickMixerChangeHandler,
+  });
+
+  function domainPartClick(part){
+    const update = { ...quickMixerFormHandler.fields, domain: quickMixerFormHandler.fields.domain+part }
+    quickMixerFormHandler.setFields(update);
+    quickMixerChangeHandler({fields:update});
+  }
   return (
     <div id="page-index">
-      <SearchForm></SearchForm>
+      <SearchForm domainPartClick={domainPartClick}></SearchForm>
+      <QuickMixer formHandler={quickMixerFormHandler}></QuickMixer>
     </div>
-  )
+  );
 }
 
-const SearchForm = () => {
+const SearchForm = ({domainPartClick}) => {
   const fieldGroups = ['term', 'matchType', 'orderLocation', 'isRequired'];
   const fieldNumbers = [0, 1, 2]
   const initialFormState = { term: '', matchType: 'Synonym', orderLocation: 'Any Position', isRequired: 'Required' };
@@ -28,7 +44,6 @@ const SearchForm = () => {
   initialFormState['agent'] = registerAgents[0].value;
   
   const onSubmitCallback = ({ event, fields }) => {
-    console.log(JSON.stringify(fields, null, 5));
     sendAction('updateConstraints', fields);
   };
 
@@ -51,14 +66,15 @@ const SearchForm = () => {
           <input tabindex="1" id="submit-terms" type="submit" value="Search" onClick={formHandler.onSubmit}></input>
         </p>
       </form>
-      <Results tld={formHandler.fields.tld} agent={formHandler.fields.agent}></Results>
+      <Results domainPartClick={domainPartClick} tld={formHandler.fields.tld} agent={formHandler.fields.agent}></Results>
     </div>
   )
 }
 
-const Results = ({tld, agent}) => {
+
+
+const Results = ({tld, agent, domainPartClick}) => {
   const { domains } = useWebsocketHookData();
-  console.log({tld, agent})
   if (!domains || domains.length === 0) {
     return (<div id="results">
       <p>No results. Try adjusting your query and clicking on search.</p>
@@ -75,27 +91,11 @@ const Results = ({tld, agent}) => {
             <div class="result">
               <div classname="result-section">
                 <div className="domainWithTLD">
-                  <span href="{r.domainWithTLD}"><DomainColorized domainObj={r} /></span> is
-                    &nbsp;
-                <span className={r.isAvailable ? 'available' : 'unavailable'}>
-                    {r.isAvailable ? 'available' : 'unavailable'}
-                  </span>.
+                  <span href="{r.domainWithTLD}"><DomainColorized domainPartClick={domainPartClick} domainObj={r} /></span> 
+                  <IsAvailable r={r}/>
                 </div>
               </div>
-              <div className="result-section">
-                  {
-                    r.isAvailable &&
-                    (
-                      <span className="register"><a href={domainLink(r.domainWithTLD)}>Go register it!</a></span>
-                    )
-                  }
-                  {
-                    !r.isAvailable &&
-                    (
-                      <span className="register"><a href={domainLink(r.domainWithTLD)}>Try .net, .org, .it, info, and others &rarr;</a></span>
-                    )
-                  }
-              </div>
+              <ResultSection r={r} domainLink={domainLink}/>
             </div>
           );
         })
@@ -104,11 +104,69 @@ const Results = ({tld, agent}) => {
   );
 }
 
-const DomainColorized = ({ domainObj }) => {
+const IsAvailable = ({ r }) => {
+  return (
+    <span>
+      &nbsp;is&nbsp;
+      <span className={r.isAvailable ? 'available' : 'unavailable'}>
+        {r.isAvailable ? 'available' : 'unavailable'}
+      </span>
+      .
+    </span>
+  );
+};
+
+const ResultSection = ({r, domainLink}) => {
+  return (
+    <span className="result-section">
+      {
+        r.isAvailable &&
+        (
+          <span className="register"><a href={domainLink(r.domainWithTLD)}>Go register {r.domainWithTLD}!</a></span>
+        )
+      }
+      {
+        !r.isAvailable &&
+        (
+          <span className="register"><a href={domainLink(r.domainWithTLD)}>Try .net, .org, .it, info, and others &rarr;</a></span>
+        )
+      }
+    </span>
+  )
+}
+
+
+
+const QuickMixer = ({formHandler}) => {
+  const { quickMixResult } = useWebsocketHookData();
+  const r = quickMixResult;
+  function domainLink(domain) {
+    return registerAgents[0].value.replace('$DOMAIN', domain);
+  }
+  return (
+    <div id="quickmixer">
+      <h4>Quick-Mixer</h4>
+      <TextInput name="domain" formHandler={formHandler} size={formHandler.fields.domain.length} />
+      <SelectInput name="tld" formHandler={formHandler} options={tlds} />
+      {r &&
+        <span className="output">
+          <IsAvailable r={r} /> &nbsp;&nbsp;
+          <ResultSection r={r} domainLink={domainLink} />
+        </span>
+      }
+      <div class="description">Test the availablity of a single domain. You can click on word parts in search results to append them to the quick-mixer.</div>
+    </div>
+  )
+}
+
+const DomainColorized = ({ domainObj, domainPartClick}) => {
   return (
     <span className="colorized-domain">
       {domainObj.domainParts.map(function partProcess(part) {
-        return (<span class="colorized-domain-part">{part}</span>);
+        function partClick(){
+          domainPartClick(part);
+        }
+        return (<span class="colorized-domain-part" onClick={partClick}>{part}</span>);
       })
       }
       <span className="tld">{domainObj.tld}</span>

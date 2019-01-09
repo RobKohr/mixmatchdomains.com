@@ -77,23 +77,40 @@ function updateDomains(socket) {
 }
 
 function checkHostAvailable(domain, callback) {
-  domain = domain.replace(/[^a-z0-9\.]/gi, '');
+  domain = cleanupDomain(domain)
   exec(`host ${domain}`, function (error, stdout, stderr) {
     if (!domain) {
       return callback(false);
     }
     if (stdout.includes('NXDOMAIN')) {
-      callback(true);
+      callback(true, domain);
     } else {
-      callback(false);
+      callback(false, domain);
     }
   });
 }
 
+
+function cleanupDomain(domain){
+  return domain.replace(/[^a-z0-9\.\-]/gi, '');
+}
+
+
+function quickmixer({domain, tld}, socket){
+  quickMixSearch = cleanupDomain(domain+tld);
+  socket.quickMixSearch = quickMixSearch;
+  checkHostAvailable(quickMixSearch, function(isAvailable, domainChecked){
+    if(socket.quickMixSearch===domainChecked){
+      socket.data.quickMixResult = { domainWithTLD: domainChecked, isAvailable };
+      socket.sendUpdatedData();
+    }
+  })
+}
 
 module.exports = {
   register,
   updateConstraints,
   createDomainNameFromWordLists,
   updateDomains,
+  quickmixer,
 }

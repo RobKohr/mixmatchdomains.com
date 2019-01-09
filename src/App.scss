@@ -11,6 +11,25 @@ form{
   }
 }
 
+#quickmixer{
+  position: fixed;
+  bottom: 0px;
+  padding: 1em;
+  background: yellow;
+  margin: 0px;
+  left: 0px;
+  width: 100%;
+  border-top: 1px solid gray;
+  h4{
+    margin: 0px;
+    margin-left: -5px;
+  }
+  .description{
+    font-size: 0.6em;
+    margin-top: 3px;
+  }
+}
+
 #terms {
   .term {
     padding:1em;
@@ -78,6 +97,10 @@ form{
   }
 }
 
+.unavailable{
+  color:red;
+  text-decoration: line-through;
+}
 #results{
   color:white;
   padding:1em;
@@ -87,42 +110,54 @@ form{
   margin-right:1em;
   display:table;
   width:calc(100% - 3em);
+  margin-bottom: 130px;
   a{
     color:lightblue;
   }
   .result{
     position: relative;
     display:table-row;
-    &:hover{
-      background:#555555;
-    }
+    
     &:nth-child(even){
-	&:hover{
-	    background:#555555;
-	}
       background:#444444;
     }
     .result-section{
       display:table-cell;
     }
-    .unavailable{
-      color:red;
-      text-decoration: line-through;
-    }
     .domainWithTLD{
       padding-bottom:3px;
       padding-top:3px;
       .colorized-domain-part, .tld{
+        background-position: 0 1.04em;
+        background-repeat: repeat-x;
+        background-size: 6px 3px;
         font-weight:bold;
         margin-left:2px;
+      
+
         &:nth-child(1){
           color:$term-color-0;
+          &:hover{
+            border:1px solid $term-color-0;
+          }
+          cursor: pointer;
+          background-image: linear-gradient(to right, $term-color-0 50%, transparent 50%);
         } 
         &:nth-child(2){
           color:$term-color-1;
+          &:hover{
+            border:1px solid $term-color-1;
+          }
+          cursor: pointer;
+          background-image: linear-gradient(to right, $term-color-1 50%, transparent 50%);
         } 
         &:nth-child(3){
           color:$term-color-2;
+          &:hover{
+            border:1px solid $term-color-2;
+          }
+          cursor: pointer;
+          background-image: linear-gradient(to right, $term-color-2 50%, transparent 50%);
         }
         &:nth-last-child(2){
           margin-left:0px;
